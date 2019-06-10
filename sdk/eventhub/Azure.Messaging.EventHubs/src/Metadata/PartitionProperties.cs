@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System;
-using Azure.Messaging.EventHubs.Core;
 
 namespace Azure.Messaging.EventHubs.Metadata
 {
@@ -63,21 +62,21 @@ namespace Azure.Messaging.EventHubs.Metadata
         ///   <c>true</c> if the partition is empty; otherwise, <c>false</c>.
         /// </value>
         ///
-        public bool IsEmpty { get; private set;}
+        public bool IsEmpty { get; private set; }
 
         /// <summary>
         ///   The date and time, in UTC, that the information was retrieved from the
         ///   Event Hub.
         /// </summary>
         ///
-        public DateTime PropertyRetrievalTimeUtc { get; private set;}
+        public DateTime PropertyRetrievalTimeUtc { get; private set; }
 
         /// <summary>
         ///   Initializes a new instance of the <see cref="PartitionProperties"/> class.
         /// </summary>
         ///
         /// <param name="path">The path of the Event Hub that contains the partitions.</param>
-        /// <param name="key">The identifier of the partition.</param>
+        /// <param name="partitionId">The identifier of the partition.</param>
         /// <param name="beginningSequenceNumber">The first sequence number available for events in the partition.</param>
         /// <param name="lastSequenceNumber">The sequence number observed the last event to be enqueued in the partition.</param>
         /// <param name="lastOffset">The offset of the last event to be enqueued in the partition.</param>
@@ -85,17 +84,17 @@ namespace Azure.Messaging.EventHubs.Metadata
         /// <param name="isEmpty">Indicates whether or not the partition is currently empty.</param>
         /// <param name="retrievalTimeUtc">the date and time, in UTC, that the information was retrieved from the service; if not provided, the current date/time will be used.</param>
         ///
-        internal PartitionProperties(string    path,
-                                      string    key,
-                                      long      beginningSequenceNumber,
-                                      long      lastSequenceNumber,
-                                      string    lastOffset,
-                                      DateTime  lastEnqueueUtc,
-                                      bool      isEmpty,
+        internal PartitionProperties(string path,
+                                      string partitionId,
+                                      long beginningSequenceNumber,
+                                      long lastSequenceNumber,
+                                      string lastOffset,
+                                      DateTime lastEnqueueUtc,
+                                      bool isEmpty,
                                       DateTime? retrievalTimeUtc = null)
         {
             EventHubPath = path;
-            Id = key;
+            Id = partitionId;
             BeginningSequenceNumber = beginningSequenceNumber;
             LastEnqueuedSequenceNumber = lastSequenceNumber;
             LastEnqueuedOffset = lastOffset;

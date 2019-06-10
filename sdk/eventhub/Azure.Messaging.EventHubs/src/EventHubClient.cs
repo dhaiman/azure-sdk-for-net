@@ -4,10 +4,11 @@
 using System;
 using System.ComponentModel;
 using System.Globalization;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core;
+using Azure.Messaging.EventHubs.Authorization;
+using Azure.Messaging.EventHubs.Compatibility;
 using Azure.Messaging.EventHubs.Core;
 using Azure.Messaging.EventHubs.Metadata;
 
@@ -21,28 +22,34 @@ namespace Azure.Messaging.EventHubs
     ///
     /// <seealso href="https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-about" />
     ///
-    public class EventHubClient
+    public class EventHubClient : IAsyncDisposable
     {
         /// <summary>
         ///   The path of the specific Event Hub that the client is connected to, relative
         ///   to the Event Hubs namespace that contains it.
         /// </summary>
         ///
-        public string EventHubPath { get; }
+        public string EventHubPath { get; private set; }
 
         /// <summary>
-        ///   The credential to use for authorization with the Azure Event Hubs connection.  This credential
+        ///   The credential provided for use in authorization with the Azure Event Hubs connection.  This credential
         ///   will be validated against the Event Hubs namespace and the requested Event Hub for which operations
         ///   will be performed.
         /// </summary>
         ///
-        public TokenCredential Credential { get; }
+        internal TokenCredential Credential { get; private set; }
+
+        /// <summary>
+        ///   An abstracted Event Hub Client specific to the active protocol and transport intended to perform delegated operations.
+        /// </summary>
+        ///
+        internal TransportEventHubClient InnerClient { get; set; }
 
         /// <summary>
         ///   The set of client options used for creation of this client.
         /// </summary>
         ///
-        protected EventHubClientOptions ClientOptions { get; }
+        internal EventHubClientOptions ClientOptions { get; private set; }
 
         /// <summary>
         ///   Initializes a new instance of the <see cref="EventHubClient"/> class.
@@ -79,7 +86,7 @@ namespace Azure.Messaging.EventHubs
         ///   Event Hub will result in a connection string that contains the path.
         /// </remarks>
         ///
-        public EventHubClient(string                connectionString,
+        public EventHubClient(string connectionString,
                               EventHubClientOptions clientOptions)
         {
             Guard.ArgumentNotNullOrEmpty(nameof(connectionString), connectionString);
@@ -90,6 +97,19 @@ namespace Azure.Messaging.EventHubs
 
             ClientOptions = clientOptions?.Clone() ?? new EventHubClientOptions();
             EventHubPath = connectionStringProperties.EventHubPath;
+
+            var eventHubsHostName = connectionStringProperties.Endpoint.Host;
+
+            var sharedAccessSignature = new SharedAccessSignature
+            (
+                 ClientOptions.TransportType,
+                 eventHubsHostName,
+                 EventHubPath,
+                 connectionStringProperties.SharedAccessKeyName,
+                 connectionStringProperties.SharedAccessKey
+            );
+
+            InnerClient = BuildTransportClient(eventHubsHostName, EventHubPath, new SharedAccessSignatureCredential(sharedAccessSignature), ClientOptions);
         }
 
         /// <summary>
@@ -101,10 +121,10 @@ namespace Azure.Messaging.EventHubs
         /// <param name="credential">The Azure managed identity credential to use for authorization.  Access controls may be specified by the Event Hubs namespace or the requeseted Event Hub, depending on Azure configuration.</param>
         /// <param name="clientOptions">A set of options to apply when configuring the client.</param>
         ///
-        public EventHubClient(string                  host,
-                              string                  eventHubPath,
-                              TokenCredential         credential,
-                              EventHubClientOptions   clientOptions = default)
+        public EventHubClient(string host,
+                              string eventHubPath,
+                              TokenCredential credential,
+                              EventHubClientOptions clientOptions = default)
         {
             Guard.ArgumentNotNullOrEmpty(nameof(host), host);
             Guard.ArgumentNotNullOrEmpty(nameof(eventHubPath), eventHubPath);
@@ -114,6 +134,25 @@ namespace Azure.Messaging.EventHubs
             EventHubPath = eventHubPath;
             Credential = credential;
             ClientOptions = clientOptions?.Clone() ?? new EventHubClientOptions();
+            InnerClient = BuildTransportClient(host, eventHubPath, credential, ClientOptions);
+        }
+
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="EventHubClient"/> class.
+        /// </summary>
+        ///
+        /// <param name="clientOptions">A set of options to apply when configuring the client.</param>
+        ///
+        /// <remarks>
+        ///   Because this is a non-public constructor, it is assumed that the <paramref name="clientOptions" /> passed are
+        ///   owned by this instance and are safe from changes made by consumers.  It is considered the responsibility of the
+        ///   caller to ensure that any needed cloning of options is performed.
+        /// </remarks>
+        ///
+        protected EventHubClient(EventHubClientOptions clientOptions)
+        {
+            ValidateClientOptions(clientOptions);
+            ClientOptions = clientOptions;
         }
 
         /// <summary>
@@ -133,7 +172,7 @@ namespace Azure.Messaging.EventHubs
         ///
         /// <returns>The set of information for the Event Hub that this client is associated with.</returns>
         ///
-        public virtual Task<EventHubProperties> GetPropertiesAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public virtual Task<EventHubProperties> GetPropertiesAsync(CancellationToken cancellationToken = default) => InnerClient.GetPropertiesAsync(cancellationToken);
 
         /// <summary>
         ///   Retrieves the set of identifiers for the partitions of an Event Hub.
@@ -150,7 +189,7 @@ namespace Azure.Messaging.EventHubs
         /// </remarks>
         ///
         public virtual async Task<string[]> GetPartitionIdsAsync(CancellationToken cancellationToken = default) =>
-            (await GetPropertiesAsync(cancellationToken))?.PartitionIds;
+            (await GetPropertiesAsync(cancellationToken).ConfigureAwait(false))?.PartitionIds;
 
         /// <summary>
         ///   Retrieves information about a specific partiton for an Event Hub, including elements that describe the available
@@ -162,8 +201,8 @@ namespace Azure.Messaging.EventHubs
         ///
         /// <returns>The set of information for the requested partition under the Event Hub this client is associated with.</returns>
         ///
-        public virtual Task<PartitionProperties> GetPartitionPropertiesAsync(string            partitionId,
-                                                                             CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public virtual Task<PartitionProperties> GetPartitionPropertiesAsync(string partitionId,
+                                                                             CancellationToken cancellationToken = default) => InnerClient.GetPartitionPropertiesAsync(partitionId, cancellationToken);
 
         /// <summary>
         ///   Creates an event sender responsible for transmitting <see cref="EventData" /> to the
@@ -193,7 +232,7 @@ namespace Azure.Messaging.EventHubs
             options.Retry = options.Retry ?? ClientOptions.Retry.Clone();
             options.Timeout = options.TimeoutOrDefault ?? ClientOptions.DefaultTimeout;
 
-            return BuildEventSender(ClientOptions.ConnectionType, EventHubPath, options);
+            return BuildEventSender(ClientOptions.TransportType, EventHubPath, options);
         }
 
         /// <summary>
@@ -223,8 +262,8 @@ namespace Azure.Messaging.EventHubs
         ///   events which appear after that point.
         /// </remarks>
         ///
-        public virtual PartitionReceiver CreatePartitionReceiver(string          partitionId,
-                                                                 ReceiverOptions receiverOptions = default)
+        public virtual EventReceiver CreateReceiver(string partitionId,
+                                                    ReceiverOptions receiverOptions = default)
         {
             Guard.ArgumentNotNullOrEmpty(nameof(partitionId), partitionId);
 
@@ -233,7 +272,7 @@ namespace Azure.Messaging.EventHubs
             options.Retry = options.Retry ?? ClientOptions.Retry.Clone();
             options.DefaultMaximumReceiveWaitTime = options.MaximumReceiveWaitTimeOrDefault ?? ClientOptions.DefaultTimeout;
 
-            return BuildPartitionReceiver(ClientOptions.ConnectionType, EventHubPath, partitionId, options);
+            return BuildEventReceiver(ClientOptions.TransportType, EventHubPath, partitionId, options);
         }
 
         /// <summary>
@@ -244,7 +283,7 @@ namespace Azure.Messaging.EventHubs
         ///
         /// <returns>A task to be resolved on when the operation has completed.</returns>
         ///
-        public virtual Task CloseAsync(CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public virtual Task CloseAsync(CancellationToken cancellationToken = default) => InnerClient.CloseAsync(cancellationToken);
 
         /// <summary>
         ///   Closes the connection to the Event Hub instance.
@@ -253,6 +292,15 @@ namespace Azure.Messaging.EventHubs
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request for cancelling the operation.</param>
         ///
         public virtual void Close(CancellationToken cancellationToken = default) => CloseAsync(cancellationToken).GetAwaiter().GetResult();
+
+        /// <summary>
+        ///   Performs the task needed to clean up resources used by the <see cref="EventHubClient" />,
+        ///   including ensuring that the client itself has been closed.
+        /// </summary>
+        ///
+        /// <returns>A task to be resolved on when the operation has completed.</returns>
+        ///
+        public virtual async ValueTask DisposeAsync() => await CloseAsync().ConfigureAwait(false);
 
         /// <summary>
         ///   Determines whether the specified <see cref="System.Object" />, is equal to this instance.
@@ -284,33 +332,72 @@ namespace Azure.Messaging.EventHubs
         public override string ToString() => base.ToString();
 
         /// <summary>
-        ///   Performs the actions needed to validate the <see cref="EventHubClientOptions" /> associated
-        ///   with this client.
+        ///   Builds an Event Hub Client specific to the protocol and transport specified by the
+        ///   requested connection type of the <paramref name="options" />.
         /// </summary>
         ///
-        /// <param name="clientOptions">The set of options to validate.</param>
+        /// <param name="host">The fully qualified host name for the Event Hubs namespace.</param>
+        /// <param name="eventHubPath">The path to a specific Event Hub.</param>
+        /// <param name="credential">The Azure managed identity credential to use for authorization.</param>
+        /// <param name="options">The set of options to use for the client.</param>
+        ///
+        /// <returns>A client generalization spcecific to the specified protocol/transport to which operations may be delegated.</returns>
         ///
         /// <remarks>
-        ///   In the case that the options violate an invariant or otherwise represent a combination that
-        ///   is not permissible, an appropriate exception will be thrown.
+        ///   As an internal method, only basic sanity checks are performed against arguments.  It is
+        ///   assumed that callers are trusted and have performed deep validation.
+        ///
+        ///   Parameters passed are also assumed to be owned by thee transport client and safe to mutate or dispose;
+        ///   creation of clones or otherwise protecting the parameters is assumed to be the purview of the caller.
         /// </remarks>
         ///
-        protected virtual void ValidateClientOptions(EventHubClientOptions clientOptions)
+        internal virtual TransportEventHubClient BuildTransportClient(string host,
+                                                                      string eventHubPath,
+                                                                      TokenCredential credential,
+                                                                      EventHubClientOptions options)
         {
-            // If there were no options passed, they cannot be in an invalid state.
-
-            if (clientOptions == null)
+            switch (options.TransportType)
             {
-                return;
-            }
+                case TransportType.AmqpTcp:
+                case TransportType.AmqpWebSockets:
+                    return new TrackOneEventHubClient(host, eventHubPath, credential, options);
 
-            // A proxy is only valid when websockets is used as the transport.
-
-            if ((clientOptions.ConnectionType == ConnectionType.AmqpTcp) && (clientOptions.Proxy != null))
-            {
-                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Resources.ProxyMustUseWebsockets), nameof(clientOptions));
+                default:
+                    throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Resources.InvalidTransportType, options.TransportType.ToString()), nameof(options.TransportType));
             }
         }
+
+        /// <summary>
+        ///   Builds an event sender instance using the provided options.
+        /// </summary>
+        ///
+        /// <param name="connectionType">The type of connection being used for communication with the EventHubs servcie.</param>
+        /// <param name="eventHubPath">The path to a specific Event Hub.</param>
+        /// <param name="options">The set of options to use for the sender.</param>
+        ///
+        /// <returns>The fully constructed sender.</returns>
+        ///
+        internal virtual EventSender BuildEventSender(TransportType connectionType,
+                                                      string eventHubPath,
+                                                      SenderOptions options) =>
+            new EventSender(connectionType, eventHubPath, options);
+
+        /// <summary>
+        ///   Builds a partition receiver instance using the provided options.
+        /// </summary>
+        ///
+        /// <param name="connectionType">The type of connection being used for communication with the EventHubs servcie.</param>
+        /// <param name="eventHubPath">The path to a specific Event Hub.</param>
+        /// <param name="partitionId">The identifier of the partition to receive from.</param>
+        /// <param name="options">The set of options to use for the receiver.</param>
+        ///
+        /// <returns>The fully constructed receiver.</returns>
+        ///
+        internal virtual EventReceiver BuildEventReceiver(TransportType connectionType,
+                                                          string eventHubPath,
+                                                          string partitionId,
+                                                          ReceiverOptions options) =>
+            new EventReceiver(connectionType, eventHubPath, partitionId, options);
 
         /// <summary>
         ///   Performs the actions needed to validate the <see cref="ConnectionStringProperties" /> associated
@@ -325,8 +412,8 @@ namespace Azure.Messaging.EventHubs
         ///   is not permissible, an appropriate exception will be thrown.
         /// </remarks>
         ///
-        protected virtual void ValidateConnectionStringProperties(ConnectionStringProperties properties,
-                                                                  string                     connectionStringArgumentName)
+        internal static void ValidateConnectionStringProperties(ConnectionStringProperties properties,
+                                                                string connectionStringArgumentName)
         {
             if ((String.IsNullOrEmpty(properties.Endpoint?.Host))
                 || (String.IsNullOrEmpty(properties.EventHubPath))
@@ -345,40 +432,36 @@ namespace Azure.Messaging.EventHubs
         ///
         /// <returns>The component properties parsed from the connection string.</returns>
         ///
-        protected virtual ConnectionStringProperties ParseConnectionString(string connectionString) =>
+        internal static ConnectionStringProperties ParseConnectionString(string connectionString) =>
             ConnectionStringParser.Parse(connectionString);
 
         /// <summary>
-        ///   Builds an event sender instance using the provided options.
+        ///   Performs the actions needed to validate the <see cref="EventHubClientOptions" /> associated
+        ///   with this client.
         /// </summary>
         ///
-        /// <param name="connectionType">The type of connection being used for communication with the EventHubs servcie.</param>
-        /// <param name="eventHubPath">The path to a specific Event Hub.</param>
-        /// <param name="options">The set of options to use for the sender.</param>
+        /// <param name="clientOptions">The set of options to validate.</param>
         ///
-        /// <returns>The fully constructed sender.</returns>
+        /// <remarks>
+        ///   In the case that the options violate an invariant or otherwise represent a combination that
+        ///   is not permissible, an appropriate exception will be thrown.
+        /// </remarks>
         ///
-        protected virtual EventSender BuildEventSender(ConnectionType connectionType,
-                                                       string         eventHubPath,
-                                                       SenderOptions  options) =>
-            new EventSender(connectionType, eventHubPath, options);
+        internal static void ValidateClientOptions(EventHubClientOptions clientOptions)
+        {
+            // If there were no options passed, they cannot be in an invalid state.
 
-        /// <summary>
-        ///   Builds a partition receiver instance using the provided options.
-        /// </summary>
-        ///
-        /// <param name="connectionType">The type of connection being used for communication with the EventHubs servcie.</param>
-        /// <param name="eventHubPath">The path to a specific Event Hub.</param>
-        /// <param name="partitionId">The identifier of the partition to receive from.</param>
-        /// <param name="options">The set of options to use for the receiver.</param>
-        ///
-        /// <returns>The fully constructed receiver.</returns>
-        ///
-        protected virtual PartitionReceiver BuildPartitionReceiver(ConnectionType  connectionType,
-                                                                   string          eventHubPath,
-                                                                   string          partitionId,
-                                                                   ReceiverOptions options) =>
-            new PartitionReceiver(connectionType, eventHubPath, partitionId, options);
+            if (clientOptions == null)
+            {
+                return;
+            }
 
+            // A proxy is only valid when websockets is used as the transport.
+
+            if ((clientOptions.TransportType == TransportType.AmqpTcp) && (clientOptions.Proxy != null))
+            {
+                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Resources.ProxyMustUseWebsockets), nameof(clientOptions));
+            }
+        }
     }
 }

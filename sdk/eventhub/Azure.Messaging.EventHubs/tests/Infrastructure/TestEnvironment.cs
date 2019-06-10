@@ -16,7 +16,7 @@ namespace Azure.Messaging.EventHubs.Tests
     {
         /// <summary>The environment variable value for the event hubs connection string, lazily evaluated.</summary>
         private static readonly Lazy<string> EventHubsConnectionStringInstance =
-            new Lazy<string>( () => ReadAndVerifyEnvironmentVariable("EVENT_HUBS_CONNECTION_STRING"), LazyThreadSafetyMode.PublicationOnly);
+            new Lazy<string>(() => ReadAndVerifyEnvironmentVariable("EVENT_HUBS_CONNECTION_STRING"), LazyThreadSafetyMode.PublicationOnly);
 
         /// <summary>
         ///   The connection string for the Event Hubs namespace instance to be used for
@@ -26,6 +26,15 @@ namespace Azure.Messaging.EventHubs.Tests
         /// <value>The connection string is read from the "EVENT_HUBS_CONNECTION_STRING" environment variable.</value>
         ///
         public static string EventHubsConnectionString => EventHubsConnectionStringInstance.Value;
+
+        /// <summary>
+        ///   Builds a connection string for a specific Event Hub instance under the Event Hubs namespace used for
+        ///   Live tests.
+        /// </summary>
+        ///
+        /// <value>The namepsace connection string is read from the "EVENT_HUBS_CONNECTION_STRING" environment variable.</value>
+        ///
+        public static string BuildConnectionStringForEventHub(string eventHubName) => $"{ EventHubsConnectionString };EntityPath={eventHubName}";
 
         /// <summary>
         ///   Reads an environment variable, ensuring that it is populated.

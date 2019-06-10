@@ -81,9 +81,9 @@ namespace Azure.Messaging.EventHubs {
         /// <summary>
         ///   Looks up a localized string similar to The argument &apos;{0}&apos; cannot exceed {1} characters..
         /// </summary>
-        internal static string ArgumentStringTooBig {
+        internal static string ArgumentStringTooLong {
             get {
-                return ResourceManager.GetString("ArgumentStringTooBig", resourceCulture);
+                return ResourceManager.GetString("ArgumentStringTooLong", resourceCulture);
             }
         }
         
@@ -106,11 +106,29 @@ namespace Azure.Messaging.EventHubs {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The shared access signature could not be parsed; it was either malformed or incorrectly encoded..
+        /// </summary>
+        internal static string InvalidSharedAccessSignature {
+            get {
+                return ResourceManager.GetString("InvalidSharedAccessSignature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The time period may not be Zero or Infinite..
         /// </summary>
         internal static string InvalidTimePeriod {
             get {
                 return ResourceManager.GetString("InvalidTimePeriod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The requested transport type, &apos;{0}&apos; is not supported..
+        /// </summary>
+        internal static string InvalidTransportType {
+            get {
+                return ResourceManager.GetString("InvalidTransportType", resourceCulture);
             }
         }
         
@@ -151,11 +169,29 @@ namespace Azure.Messaging.EventHubs {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The reqested resource, &apos;{0}&apos;, does not match the resource of the shared access signature, &apos;{1}&apos;.   A token cannot be issued..
+        /// </summary>
+        internal static string ResourceMustMatchSharedAccessSignature {
+            get {
+                return ResourceManager.GetString("ResourceMustMatchSharedAccessSignature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A retry must be set for the options; if no retry is desired, please set the value to Retry.NoRetry.
         /// </summary>
         internal static string RetryMustBeSet {
             get {
                 return ResourceManager.GetString("RetryMustBeSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In order to update the signature, a shared access key must have been provided when the shared access signature was created..
+        /// </summary>
+        internal static string SharedAccessKeyIsRequired {
+            get {
+                return ResourceManager.GetString("SharedAccessKeyIsRequired", resourceCulture);
             }
         }
         
@@ -174,6 +210,15 @@ namespace Azure.Messaging.EventHubs {
         internal static string TimeSpanMustBeNonNegative {
             get {
                 return ResourceManager.GetString("TimeSpanMustBeNonNegative", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified connection type, &quot;{0}&quot;, is not recognized as valid in this context..
+        /// </summary>
+        internal static string UnknownConnectionType {
+            get {
+                return ResourceManager.GetString("UnknownConnectionType", resourceCulture);
             }
         }
         
