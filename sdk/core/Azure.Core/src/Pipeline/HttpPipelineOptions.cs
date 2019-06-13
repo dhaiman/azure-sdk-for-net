@@ -19,6 +19,7 @@ namespace Azure.Core.Pipeline
 
             TelemetryPolicy = new TelemetryPolicy(name, version);
             LoggingPolicy = LoggingPolicy.Shared;
+            RetryPolicy = new RetryPolicy();
         }
 
         public HttpPipelineTransport Transport {
@@ -30,11 +31,28 @@ namespace Azure.Core.Pipeline
 
         public LoggingPolicy LoggingPolicy { get; set; }
 
+        public RetryPolicy RetryPolicy { get; set; }
+
         public ResponseClassifier ResponseClassifier { get; set; } = new ResponseClassifier();
 
-        public IList<HttpPipelinePolicy> PerCallPolicies { get; } = new List<HttpPipelinePolicy>();
+        public void AddPolicy(HttpPipelinePosition position, HttpPipelinePolicy policy)
+        {
+            switch (position)
+            {
+                case HttpPipelinePosition.PerCall:
+                    PerCallPolicies.Add(policy);
+                    break;
+                case HttpPipelinePosition.PerRetry:
+                    PerRetryPolicies.Add(policy);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(position), position, null);
+            }
+        }
 
-        public IList<HttpPipelinePolicy> PerRetryPolicies { get; } = new List<HttpPipelinePolicy>();
+        internal IList<HttpPipelinePolicy> PerCallPolicies { get; } = new List<HttpPipelinePolicy>();
+
+        internal IList<HttpPipelinePolicy> PerRetryPolicies { get; } = new List<HttpPipelinePolicy>();
 
         private (string ComponentName, string ComponentVersion) GetComponentNameAndVersion()
         {

@@ -18,6 +18,8 @@ namespace Azure.Identity
 {
     internal class IdentityClient
     {
+        private static Lazy<IdentityClient> s_sharedClient = new Lazy<IdentityClient>(() => new IdentityClient());
+
         private readonly IdentityClientOptions _options;
         private readonly HttpPipeline _pipeline;
         private readonly Uri ImdsEndptoint = new Uri("http://169.254.169.254/metadata/identity/oauth2/token");
@@ -27,11 +29,11 @@ namespace Azure.Identity
         {
             _options = options ?? new IdentityClientOptions();
 
-            _pipeline = HttpPipelineBuilder.Build(_options,
-                    _options.RetryPolicy,
-                    ClientRequestIdPolicy.Shared,
-                    BufferResponsePolicy.Shared);
+            _pipeline = HttpPipelineBuilder.Build(_options, bufferResponse: true);
         }
+
+        public static IdentityClient SharedClient { get { return s_sharedClient.Value; } }
+
 
         public virtual async Task<AccessToken> AuthenticateAsync(string tenantId, string clientId, string clientSecret, string[] scopes, CancellationToken cancellationToken = default)
         {
@@ -131,7 +133,7 @@ namespace Azure.Identity
         {
             Request request = _pipeline.CreateRequest();
 
-            request.Method = HttpPipelineMethod.Get;
+            request.Method = HttpPipelineMethod.Post;
 
             request.Headers.SetValue("Content-Type", "application/x-www-form-urlencoded");
 
