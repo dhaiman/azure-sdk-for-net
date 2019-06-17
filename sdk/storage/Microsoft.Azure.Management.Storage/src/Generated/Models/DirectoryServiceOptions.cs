@@ -8,15 +8,15 @@
 // regenerated.
 // </auto-generated>
 
-namespace Microsoft.Azure.Management.DataFactory.Models
+namespace Microsoft.Azure.Management.Storage.Models
 {
 
     /// <summary>
-    /// Defines values for DatasetCompressionLevel.
+    /// Defines values for DirectoryServiceOptions.
     /// </summary>
-    public static class DatasetCompressionLevel
+    public static class DirectoryServiceOptions
     {
-        public const string Optimal = "Optimal";
-        public const string Fastest = "Fastest";
+        public const string None = "None";
+        public const string AADDS = "AADDS";
     }
 }
