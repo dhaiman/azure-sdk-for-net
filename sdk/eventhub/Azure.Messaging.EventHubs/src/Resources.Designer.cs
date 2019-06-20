@@ -89,6 +89,17 @@ namespace Azure.Messaging.EventHubs
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; may not be empty or white space, though it may be null.
+        /// </summary>
+        internal static string ArgumentEmptyOrWhiteSpace
+        {
+            get
+            {
+                return ResourceManager.GetString("ArgumentEmptyOrWhiteSpace", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The argument &apos;{0}&apos; cannot exceed {1} characters..
         /// </summary>
         internal static string ArgumentStringTooLong
@@ -100,7 +111,7 @@ namespace Azure.Messaging.EventHubs
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to A sender created for a specific partition cannot send events using a partition key.  This sender is associated with partition &apos;{0}&apos;..
+        ///   Looks up a localized string similar to A producer created for a specific partition cannot send events using a partition key.  This producer is associated with partition &apos;{0}&apos;..
         /// </summary>
         internal static string CannotSendWithPartitionIdAndPartitionKey
         {
@@ -212,11 +223,11 @@ namespace Azure.Messaging.EventHubs
         /// <summary>
         ///   Looks up a localized string similar to The &apos;identifier&apos; parameter exceeds the maximum allowed size of {0} characters..
         /// </summary>
-        internal static string ReceiverIdentifierOverMaxValue
+        internal static string ConsumerIdentifierOverMaxValue
         {
             get
             {
-                return ResourceManager.GetString("ReceiverIdentifierOverMaxValue", resourceCulture);
+                return ResourceManager.GetString("ConsumerIdentifierOverMaxValue", resourceCulture);
             }
         }
 
