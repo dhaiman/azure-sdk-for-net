@@ -19,40 +19,39 @@ using System.Threading.Tasks;
 
 namespace Azure.Identity
 {
-    internal class IdentityClient
+    internal class AadIdentityClient
     {
-        private static Lazy<IdentityClient> s_sharedClient = new Lazy<IdentityClient>(() => new IdentityClient());
+        private static Lazy<AadIdentityClient> s_sharedClient = new Lazy<AadIdentityClient>(() => new AadIdentityClient());
 
         private readonly IdentityClientOptions _options;
         private readonly HttpPipeline _pipeline;
-        private readonly Uri ImdsEndptoint = new Uri("http://169.254.169.254/metadata/identity/oauth2/token");
-        private const string MsiApiVersion = "2018-02-01";
+
         private const string ClientAssertionType = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 
-        public IdentityClient(IdentityClientOptions options = null)
+        private const string AuthenticationRequestFailedError = "The request to the identity service failed.  See inner exception for details.";
+
+        public AadIdentityClient(IdentityClientOptions options = null)
         {
             _options = options ?? new IdentityClientOptions();
 
             _pipeline = HttpPipelineBuilder.Build(_options, bufferResponse: true);
         }
 
-        public static IdentityClient SharedClient { get { return s_sharedClient.Value; } }
+        public static AadIdentityClient SharedClient { get { return s_sharedClient.Value; } }
 
 
         public virtual async Task<AccessToken> AuthenticateAsync(string tenantId, string clientId, string clientSecret, string[] scopes, CancellationToken cancellationToken = default)
         {
             using (Request request = CreateClientSecretAuthRequest(tenantId, clientId, clientSecret, scopes))
             {
-                var response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
-
-                if (response.Status == 200 || response.Status == 201)
+                try
                 {
-                    var result = await DeserializeAsync(response.ContentStream, cancellationToken).ConfigureAwait(false);
-
-                    return new Response<AccessToken>(response, result);
+                    return await SendAuthRequestAsync(request, cancellationToken).ConfigureAwait(false);
                 }
-
-                throw await response.CreateRequestFailedExceptionAsync();
+                catch (RequestFailedException ex)
+                {
+                    throw new AuthenticationFailedException(AuthenticationRequestFailedError, ex);
+                }
             }
         }
 
@@ -60,16 +59,14 @@ namespace Azure.Identity
         {
             using (Request request = CreateClientSecretAuthRequest(tenantId, clientId, clientSecret, scopes))
             {
-                var response = _pipeline.SendRequest(request, cancellationToken);
-
-                if (response.Status == 200 || response.Status == 201)
+                try
                 {
-                    var result = Deserialize(response.ContentStream);
-
-                    return new Response<AccessToken>(response, result);
+                    return SendAuthRequest(request, cancellationToken);
                 }
-
-                throw response.CreateRequestFailedException();
+                catch (RequestFailedException ex)
+                {
+                    throw new AuthenticationFailedException(AuthenticationRequestFailedError, ex);
+                }
             }
         }
 
@@ -77,16 +74,14 @@ namespace Azure.Identity
         {
             using (Request request = CreateClientCertificateAuthRequest(tenantId, clientId, clientCertificate, scopes))
             {
-                var response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
-
-                if (response.Status == 200 || response.Status == 201)
+                try
                 {
-                    var result = await DeserializeAsync(response.ContentStream, cancellationToken).ConfigureAwait(false);
-
-                    return new Response<AccessToken>(response, result);
+                    return await SendAuthRequestAsync(request, cancellationToken).ConfigureAwait(false);
                 }
-
-                throw await response.CreateRequestFailedExceptionAsync();
+                catch (RequestFailedException ex)
+                {
+                    throw new AuthenticationFailedException(AuthenticationRequestFailedError, ex);
+                }
             }
         }
 
@@ -94,76 +89,42 @@ namespace Azure.Identity
         {
             using (Request request = CreateClientCertificateAuthRequest(tenantId, clientId, clientCertificate, scopes))
             {
-                var response = _pipeline.SendRequest(request, cancellationToken);
-
-                if (response.Status == 200 || response.Status == 201)
+                try
                 {
-                    var result = Deserialize(response.ContentStream);
-
-                    return new Response<AccessToken>(response, result);
+                    return SendAuthRequest(request, cancellationToken);
                 }
-
-                throw response.CreateRequestFailedException();
+                catch (RequestFailedException ex)
+                {
+                    throw new AuthenticationFailedException(AuthenticationRequestFailedError, ex);
+                }
             }
         }
-        public virtual async Task<AccessToken> AuthenticateManagedIdentityAsync(string[] scopes, string clientId = null, CancellationToken cancellationToken = default)
+        private async Task<AccessToken> SendAuthRequestAsync(Request request, CancellationToken cancellationToken)
         {
-            using (Request request = CreateManagedIdentityAuthRequest(scopes, clientId))
+            var response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
+
+            if (response.Status == 200 || response.Status == 201)
             {
-                var response = await _pipeline.SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
+                var result = await DeserializeAsync(response.ContentStream, cancellationToken).ConfigureAwait(false);
 
-                if (response.Status == 200 || response.Status == 201)
-                {
-                    var result = await DeserializeAsync(response.ContentStream, cancellationToken).ConfigureAwait(false);
-
-                    return new Response<AccessToken>(response, result);
-                }
-
-                throw response.CreateRequestFailedException();
+                return new Response<AccessToken>(response, result);
             }
+
+            throw await response.CreateRequestFailedExceptionAsync().ConfigureAwait(false);
         }
 
-        public virtual AccessToken AuthenticateManagedIdentity(string[] scopes, string clientId = null, CancellationToken cancellationToken = default)
+        private AccessToken SendAuthRequest(Request request, CancellationToken cancellationToken)
         {
-            using (Request request = CreateManagedIdentityAuthRequest(scopes, clientId))
+            var response = _pipeline.SendRequest(request, cancellationToken);
+
+            if (response.Status == 200 || response.Status == 201)
             {
-                var response = _pipeline.SendRequest(request, cancellationToken);
+                var result = Deserialize(response.ContentStream);
 
-                if (response.Status == 200 || response.Status == 201)
-                {
-                    var result = Deserialize(response.ContentStream);
-
-                    return new Response<AccessToken>(response, result);
-                }
-
-                throw response.CreateRequestFailedException();
-            }
-        }
-
-        private Request CreateManagedIdentityAuthRequest(string[] scopes, string clientId = null)
-        {
-            // covert the scopes to a resource string
-            string resource = ScopeUtilities.ScopesToResource(scopes);
-
-            Request request = _pipeline.CreateRequest();
-
-            request.Method = HttpPipelineMethod.Get;
-
-            request.Headers.Add("Metadata", "true");
-
-            // TODO: support MSI for hosted services
-            request.UriBuilder.Uri = ImdsEndptoint;
-
-            request.UriBuilder.AppendQuery("api-version", MsiApiVersion);
-
-            request.UriBuilder.AppendQuery("resource", Uri.EscapeDataString(resource));
-
-            if (!string.IsNullOrEmpty(clientId))
-            {
-                request.UriBuilder.AppendQuery("client_id", Uri.EscapeDataString(clientId));
+                return new Response<AccessToken>(response, result);
             }
 
-            return request;
+            throw response.CreateRequestFailedException();
         }
 
         private Request CreateClientSecretAuthRequest(string tenantId, string clientId, string clientSecret, string[] scopes)
