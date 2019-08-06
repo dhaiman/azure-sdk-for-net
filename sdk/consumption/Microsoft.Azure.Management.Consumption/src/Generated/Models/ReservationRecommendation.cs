@@ -42,6 +42,13 @@ namespace Microsoft.Azure.Management.Consumption.Models
         /// <param name="sku">Resource sku</param>
         /// <param name="lookBackPeriod">The number of days of usage to look
         /// back for recommendation.</param>
+        /// <param name="instanceFlexibilityRatio">The instance Flexibility
+        /// Ratio.</param>
+        /// <param name="instanceFlexibilityGroup">The instance Flexibility
+        /// Group.</param>
+        /// <param name="normalizedSize">The normalized Size.</param>
+        /// <param name="recommendedQuantityNormalized">The recommended
+        /// Quantity Normalized.</param>
         /// <param name="meterId">The meter id (GUID)</param>
         /// <param name="term">RI recommendations in one or three year
         /// terms.</param>
@@ -56,7 +63,7 @@ namespace Microsoft.Azure.Management.Consumption.Models
         /// <param name="firstUsageDate">The usage date for looking
         /// back.</param>
         /// <param name="scope">Shared or single recommendation.</param>
-        public ReservationRecommendation(string id = default(string), string name = default(string), string type = default(string), IDictionary<string, string> tags = default(IDictionary<string, string>), string location = default(string), string sku = default(string), string lookBackPeriod = default(string), System.Guid? meterId = default(System.Guid?), string term = default(string), decimal? costWithNoReservedInstances = default(decimal?), decimal? recommendedQuantity = default(decimal?), decimal? totalCostWithReservedInstances = default(decimal?), decimal? netSavings = default(decimal?), System.DateTime? firstUsageDate = default(System.DateTime?), string scope = default(string))
+        public ReservationRecommendation(string id = default(string), string name = default(string), string type = default(string), IDictionary<string, string> tags = default(IDictionary<string, string>), string location = default(string), string sku = default(string), string lookBackPeriod = default(string), int? instanceFlexibilityRatio = default(int?), string instanceFlexibilityGroup = default(string), string normalizedSize = default(string), double? recommendedQuantityNormalized = default(double?), System.Guid? meterId = default(System.Guid?), string term = default(string), decimal? costWithNoReservedInstances = default(decimal?), decimal? recommendedQuantity = default(decimal?), decimal? totalCostWithReservedInstances = default(decimal?), decimal? netSavings = default(decimal?), System.DateTime? firstUsageDate = default(System.DateTime?), string scope = default(string))
         {
             Id = id;
             Name = name;
@@ -65,6 +72,10 @@ namespace Microsoft.Azure.Management.Consumption.Models
             Location = location;
             Sku = sku;
             LookBackPeriod = lookBackPeriod;
+            InstanceFlexibilityRatio = instanceFlexibilityRatio;
+            InstanceFlexibilityGroup = instanceFlexibilityGroup;
+            NormalizedSize = normalizedSize;
+            RecommendedQuantityNormalized = recommendedQuantityNormalized;
             MeterId = meterId;
             Term = term;
             CostWithNoReservedInstances = costWithNoReservedInstances;
@@ -122,6 +133,30 @@ namespace Microsoft.Azure.Management.Consumption.Models
         /// </summary>
         [JsonProperty(PropertyName = "properties.lookBackPeriod")]
         public string LookBackPeriod { get; private set; }
+
+        /// <summary>
+        /// Gets the instance Flexibility Ratio.
+        /// </summary>
+        [JsonProperty(PropertyName = "properties.instanceFlexibilityRatio")]
+        public int? InstanceFlexibilityRatio { get; private set; }
+
+        /// <summary>
+        /// Gets the instance Flexibility Group.
+        /// </summary>
+        [JsonProperty(PropertyName = "properties.instanceFlexibilityGroup")]
+        public string InstanceFlexibilityGroup { get; private set; }
+
+        /// <summary>
+        /// Gets the normalized Size.
+        /// </summary>
+        [JsonProperty(PropertyName = "properties.normalizedSize")]
+        public string NormalizedSize { get; private set; }
+
+        /// <summary>
+        /// Gets the recommended Quantity Normalized.
+        /// </summary>
+        [JsonProperty(PropertyName = "properties.recommendedQuantityNormalized")]
+        public double? RecommendedQuantityNormalized { get; private set; }
 
         /// <summary>
         /// Gets the meter id (GUID)

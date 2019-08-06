@@ -43,6 +43,10 @@ namespace Microsoft.Azure.Management.Consumption.Models
         /// represents a single purchase transaction. A reservation order
         /// contains reservations. The reservation order specifies the VM size
         /// and region for the reservations.</param>
+        /// <param name="instanceFlexibilityRatio">The instance Flexibility
+        /// Ratio.</param>
+        /// <param name="instanceFlexibilityGroup">The instance Flexibility
+        /// Group.</param>
         /// <param name="reservationId">The reservation ID is the identifier of
         /// a reservation within a reservation order. Each reservation is the
         /// grouping for applying the benefit scope and also specifies the
@@ -63,10 +67,12 @@ namespace Microsoft.Azure.Management.Consumption.Models
         /// resource or the fully qualified Resource ID.</param>
         /// <param name="totalReservedQuantity">This is the total count of
         /// instances that are reserved for the reservationId.</param>
-        public ReservationDetail(string id = default(string), string name = default(string), string type = default(string), IDictionary<string, string> tags = default(IDictionary<string, string>), string reservationOrderId = default(string), string reservationId = default(string), string skuName = default(string), decimal? reservedHours = default(decimal?), System.DateTime? usageDate = default(System.DateTime?), decimal? usedHours = default(decimal?), string instanceId = default(string), decimal? totalReservedQuantity = default(decimal?))
+        public ReservationDetail(string id = default(string), string name = default(string), string type = default(string), IDictionary<string, string> tags = default(IDictionary<string, string>), string reservationOrderId = default(string), string instanceFlexibilityRatio = default(string), string instanceFlexibilityGroup = default(string), string reservationId = default(string), string skuName = default(string), decimal? reservedHours = default(decimal?), System.DateTime? usageDate = default(System.DateTime?), decimal? usedHours = default(decimal?), string instanceId = default(string), decimal? totalReservedQuantity = default(decimal?))
             : base(id, name, type, tags)
         {
             ReservationOrderId = reservationOrderId;
+            InstanceFlexibilityRatio = instanceFlexibilityRatio;
+            InstanceFlexibilityGroup = instanceFlexibilityGroup;
             ReservationId = reservationId;
             SkuName = skuName;
             ReservedHours = reservedHours;
@@ -91,6 +97,18 @@ namespace Microsoft.Azure.Management.Consumption.Models
         /// </summary>
         [JsonProperty(PropertyName = "properties.reservationOrderId")]
         public string ReservationOrderId { get; private set; }
+
+        /// <summary>
+        /// Gets the instance Flexibility Ratio.
+        /// </summary>
+        [JsonProperty(PropertyName = "properties.instanceFlexibilityRatio")]
+        public string InstanceFlexibilityRatio { get; private set; }
+
+        /// <summary>
+        /// Gets the instance Flexibility Group.
+        /// </summary>
+        [JsonProperty(PropertyName = "properties.instanceFlexibilityGroup")]
+        public string InstanceFlexibilityGroup { get; private set; }
 
         /// <summary>
         /// Gets the reservation ID is the identifier of a reservation within a
