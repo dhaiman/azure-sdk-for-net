@@ -43,7 +43,7 @@ namespace Microsoft.Azure.Management.Consumption
 
         /// <summary>
         /// Version of the API to be used with the client request. The current
-        /// version is 2019-04-01-preview.
+        /// version is 2019-05-01.
         /// </summary>
         string ApiVersion { get; }
 
