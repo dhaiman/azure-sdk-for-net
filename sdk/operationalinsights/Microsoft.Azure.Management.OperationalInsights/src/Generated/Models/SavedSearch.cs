@@ -78,13 +78,13 @@ namespace Microsoft.Azure.Management.OperationalInsights.Models
         /// Gets or sets the category of the saved search. This helps the user
         /// to find a saved search faster.
         /// </summary>
-        [JsonProperty(PropertyName = "properties.category")]
+        [JsonProperty(PropertyName = "properties.Category")]
         public string Category { get; set; }
 
         /// <summary>
         /// Gets or sets saved search display name.
         /// </summary>
-        [JsonProperty(PropertyName = "properties.displayName")]
+        [JsonProperty(PropertyName = "properties.DisplayName")]
         public string DisplayName { get; set; }
 
         /// <summary>
@@ -92,20 +92,20 @@ namespace Microsoft.Azure.Management.OperationalInsights.Models
         /// https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-search-reference
         /// for reference.
         /// </summary>
-        [JsonProperty(PropertyName = "properties.query")]
+        [JsonProperty(PropertyName = "properties.Query")]
         public string Query { get; set; }
 
         /// <summary>
         /// Gets or sets the version number of the query language. The current
         /// version is 2 and is the default.
         /// </summary>
-        [JsonProperty(PropertyName = "properties.version")]
+        [JsonProperty(PropertyName = "properties.Version")]
         public long? Version { get; set; }
 
         /// <summary>
         /// Gets or sets the tags attached to the saved search.
         /// </summary>
-        [JsonProperty(PropertyName = "properties.tags")]
+        [JsonProperty(PropertyName = "properties.Tags")]
         public IList<Tag> Tags { get; set; }
 
         /// <summary>
