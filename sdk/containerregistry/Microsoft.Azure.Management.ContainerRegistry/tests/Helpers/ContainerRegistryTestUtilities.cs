@@ -16,7 +16,6 @@ using Resource = Microsoft.Azure.Management.ContainerRegistry.Models.Resource;
 using Sku = Microsoft.Azure.Management.ContainerRegistry.Models.Sku;
 using SkuName = Microsoft.Azure.Management.ContainerRegistry.Models.SkuName;
 
-
 namespace ContainerRegistry.Tests
 {
     public class ContainerRegistryTestUtilities
@@ -159,11 +158,8 @@ namespace ContainerRegistry.Tests
                 resourceGroupName,
                 registryName,
                 NormalizeLocation(location),
-                new Replication
-                {
-                    Location = location,
-                    Tags = DefaultTags
-                });
+                location,
+                DefaultTags);
         }
 
         public static void ValidateResourceDefaultTags(Resource resource)
