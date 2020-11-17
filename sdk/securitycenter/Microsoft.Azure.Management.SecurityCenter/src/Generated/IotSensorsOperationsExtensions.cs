@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Management.Security
             /// <param name='iotSensorName'>
             /// Name of the IoT sensor
             /// </param>
-            public static IotSensor Get(this IIotSensorsOperations operations, string scope, string iotSensorName)
+            public static IotSensorsModel Get(this IIotSensorsOperations operations, string scope, string iotSensorName)
             {
                 return operations.GetAsync(scope, iotSensorName).GetAwaiter().GetResult();
             }
@@ -88,7 +88,7 @@ namespace Microsoft.Azure.Management.Security
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<IotSensor> GetAsync(this IIotSensorsOperations operations, string scope, string iotSensorName, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<IotSensorsModel> GetAsync(this IIotSensorsOperations operations, string scope, string iotSensorName, CancellationToken cancellationToken = default(CancellationToken))
             {
                 using (var _result = await operations.GetWithHttpMessagesAsync(scope, iotSensorName, null, cancellationToken).ConfigureAwait(false))
                 {
@@ -108,9 +108,15 @@ namespace Microsoft.Azure.Management.Security
             /// <param name='iotSensorName'>
             /// Name of the IoT sensor
             /// </param>
-            public static IotSensor CreateOrUpdate(this IIotSensorsOperations operations, string scope, string iotSensorName)
+            /// <param name='tiAutomaticUpdates'>
+            /// TI Automatic mode status of the IoT sensor
+            /// </param>
+            /// <param name='zone'>
+            /// Zone of the IoT sensor
+            /// </param>
+            public static IotSensorsModel CreateOrUpdate(this IIotSensorsOperations operations, string scope, string iotSensorName, bool? tiAutomaticUpdates = default(bool?), string zone = default(string))
             {
-                return operations.CreateOrUpdateAsync(scope, iotSensorName).GetAwaiter().GetResult();
+                return operations.CreateOrUpdateAsync(scope, iotSensorName, tiAutomaticUpdates, zone).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -125,12 +131,18 @@ namespace Microsoft.Azure.Management.Security
             /// <param name='iotSensorName'>
             /// Name of the IoT sensor
             /// </param>
+            /// <param name='tiAutomaticUpdates'>
+            /// TI Automatic mode status of the IoT sensor
+            /// </param>
+            /// <param name='zone'>
+            /// Zone of the IoT sensor
+            /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<IotSensor> CreateOrUpdateAsync(this IIotSensorsOperations operations, string scope, string iotSensorName, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<IotSensorsModel> CreateOrUpdateAsync(this IIotSensorsOperations operations, string scope, string iotSensorName, bool? tiAutomaticUpdates = default(bool?), string zone = default(string), CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.CreateOrUpdateWithHttpMessagesAsync(scope, iotSensorName, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.CreateOrUpdateWithHttpMessagesAsync(scope, iotSensorName, tiAutomaticUpdates, zone, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }

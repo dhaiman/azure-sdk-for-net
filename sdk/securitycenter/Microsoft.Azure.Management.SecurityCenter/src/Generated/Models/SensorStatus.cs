@@ -12,14 +12,12 @@ namespace Microsoft.Azure.Management.Security.Models
 {
 
     /// <summary>
-    /// Defines values for EventSource.
+    /// Defines values for SensorStatus.
     /// </summary>
-    public static class EventSource
+    public static class SensorStatus
     {
-        public const string Assessments = "Assessments";
-        public const string SubAssessments = "SubAssessments";
-        public const string Alerts = "Alerts";
-        public const string SecureScores = "SecureScores";
-        public const string SecureScoreControls = "SecureScoreControls";
+        public const string Connected = "Connected";
+        public const string Disconnected = "Disconnected";
+        public const string NotActivated = "NotActivated";
     }
 }
