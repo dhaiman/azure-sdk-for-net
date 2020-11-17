@@ -51,11 +51,6 @@ namespace Microsoft.Azure.Management.WebSites
         string SubscriptionId { get; set; }
 
         /// <summary>
-        /// API Version
-        /// </summary>
-        string ApiVersion { get; }
-
-        /// <summary>
         /// The preferred language for the response.
         /// </summary>
         string AcceptLanguage { get; set; }

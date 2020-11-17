@@ -39,7 +39,7 @@ namespace Microsoft.Azure.Management.WebSites
                 new Tuple<string, string, string>("Web", "ListSiteIdentifiersAssignedToHostName", "2020-06-01"),
                 new Tuple<string, string, string>("Web", "ListSkus", "2020-06-01"),
                 new Tuple<string, string, string>("Web", "ListSourceControls", "2020-06-01"),
-                new Tuple<string, string, string>("Web", "Provider", "2020-06-01"),
+                new Tuple<string, string, string>("Web", "Provider", "2020-10-01"),
                 new Tuple<string, string, string>("Web", "Recommendations", "2020-06-01"),
                 new Tuple<string, string, string>("Web", "ResourceHealthMetadata", "2020-06-01"),
                 new Tuple<string, string, string>("Web", "StaticSites", "2020-06-01"),
@@ -53,16 +53,5 @@ namespace Microsoft.Azure.Management.WebSites
               }.AsEnumerable();
           }
       }
-      // BEGIN: Code Generation Metadata Section
-      public static readonly String AutoRestVersion = "v2";
-      public static readonly String AutoRestBootStrapperVersion = "autorest@2.0.4413";
-      public static readonly String AutoRestCmdExecuted = "cmd.exe /c autorest.cmd https://github.com/Azure/azure-rest-api-specs/blob/master/specification/web/resource-manager/readme.md --csharp --version=v2 --reflect-api-versions --tag=package-2020-06 --csharp-sdks-folder=K:\\DotNet-SDK\\Sep-2020\\azure-sdk-for-net\\sdk";
-      public static readonly String GithubForkName = "Azure";
-      public static readonly String GithubBranchName = "master";
-      public static readonly String GithubCommidId = "1b04f5fce19cd330dcc0eec11a98e499c0cda50d";
-      public static readonly String CodeGenerationErrors = "";
-      public static readonly String GithubRepoName = "azure-rest-api-specs";
-      // END: Code Generation Metadata Section
   }
 }
-
