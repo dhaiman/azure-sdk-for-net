@@ -442,6 +442,31 @@ namespace Microsoft.Azure.Management.Security
             }
 
             /// <summary>
+            /// Simulate security alerts
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            public static void SimulateAlerts(this IAlertsOperations operations)
+            {
+                operations.SimulateAlertsAsync().GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Simulate security alerts
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task SimulateAlertsAsync(this IAlertsOperations operations, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.SimulateAlertsWithHttpMessagesAsync(null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
             /// List all the alerts that are associated with the subscription
             /// </summary>
             /// <param name='operations'>

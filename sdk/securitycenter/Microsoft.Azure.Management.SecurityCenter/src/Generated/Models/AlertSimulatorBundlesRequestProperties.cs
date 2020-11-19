@@ -11,35 +11,33 @@
 namespace Microsoft.Azure.Management.Security.Models
 {
     using Microsoft.Rest;
-    using Microsoft.Rest.Serialization;
     using Newtonsoft.Json;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
-    /// Represents a data export setting
+    /// Simulate alerts according to this bundles.
     /// </summary>
-    [Rest.Serialization.JsonTransformation]
-    public partial class DataExportSettings : Setting
+    public partial class AlertSimulatorBundlesRequestProperties : AlertSimulatorRequestProperties
     {
         /// <summary>
-        /// Initializes a new instance of the DataExportSettings class.
+        /// Initializes a new instance of the
+        /// AlertSimulatorBundlesRequestProperties class.
         /// </summary>
-        public DataExportSettings()
+        public AlertSimulatorBundlesRequestProperties()
         {
             CustomInit();
         }
 
         /// <summary>
-        /// Initializes a new instance of the DataExportSettings class.
+        /// Initializes a new instance of the
+        /// AlertSimulatorBundlesRequestProperties class.
         /// </summary>
-        /// <param name="enabled">Is the data export setting is enabled</param>
-        /// <param name="id">Resource Id</param>
-        /// <param name="name">Resource name</param>
-        /// <param name="type">Resource type</param>
-        public DataExportSettings(bool enabled, string id = default(string), string name = default(string), string type = default(string))
-            : base(id, name, type)
+        /// <param name="bundles">Bundles list.</param>
+        public AlertSimulatorBundlesRequestProperties(IList<string> bundles)
         {
-            Enabled = enabled;
+            Bundles = bundles;
             CustomInit();
         }
 
@@ -49,10 +47,10 @@ namespace Microsoft.Azure.Management.Security.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets is the data export setting is enabled
+        /// Gets or sets bundles list.
         /// </summary>
-        [JsonProperty(PropertyName = "properties.enabled")]
-        public bool Enabled { get; set; }
+        [JsonProperty(PropertyName = "bundles")]
+        public IList<string> Bundles { get; set; }
 
         /// <summary>
         /// Validate the object.
@@ -62,7 +60,10 @@ namespace Microsoft.Azure.Management.Security.Models
         /// </exception>
         public virtual void Validate()
         {
-            //Nothing to validate
+            if (Bundles == null)
+            {
+                throw new ValidationException(ValidationRules.CannotBeNull, "Bundles");
+            }
         }
     }
 }

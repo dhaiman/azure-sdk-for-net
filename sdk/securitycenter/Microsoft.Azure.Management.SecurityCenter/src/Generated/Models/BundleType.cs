@@ -12,14 +12,15 @@ namespace Microsoft.Azure.Management.Security.Models
 {
 
     /// <summary>
-    /// Defines values for EventSource.
+    /// Defines values for BundleType.
     /// </summary>
-    public static class EventSource
+    public static class BundleType
     {
-        public const string Assessments = "Assessments";
-        public const string SubAssessments = "SubAssessments";
-        public const string Alerts = "Alerts";
-        public const string SecureScores = "SecureScores";
-        public const string SecureScoreControls = "SecureScoreControls";
+        public const string AppServices = "AppServices";
+        public const string KeyVaults = "KeyVaults";
+        public const string KubernetesService = "KubernetesService";
+        public const string SqlServers = "SqlServers";
+        public const string StorageAccounts = "StorageAccounts";
+        public const string VirtualMachines = "VirtualMachines";
     }
 }

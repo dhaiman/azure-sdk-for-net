@@ -10,26 +10,40 @@
 
 namespace Microsoft.Azure.Management.Security.Models
 {
+    using Newtonsoft.Json;
     using System.Linq;
 
     /// <summary>
-    /// Details of the resource that was assessed
+    /// Alert Simulator request body.
     /// </summary>
-    public partial class ResourceDetails
+    public partial class AlertSimulatorRequestBody
     {
         /// <summary>
-        /// Initializes a new instance of the ResourceDetails class.
+        /// Initializes a new instance of the AlertSimulatorRequestBody class.
         /// </summary>
-        public ResourceDetails()
+        public AlertSimulatorRequestBody()
         {
             CustomInit();
         }
 
+        /// <summary>
+        /// Static constructor for AlertSimulatorRequestBody class.
+        /// </summary>
+        static AlertSimulatorRequestBody()
+        {
+            Properties = new AlertSimulatorRequestProperties();
+        }
 
         /// <summary>
         /// An initialization method that performs custom operations like setting defaults
         /// </summary>
         partial void CustomInit();
+
+        /// <summary>
+        /// Alert Simulator request body data.
+        /// </summary>
+        [JsonProperty(PropertyName = "properties")]
+        public static AlertSimulatorRequestProperties Properties { get; private set; }
 
     }
 }
