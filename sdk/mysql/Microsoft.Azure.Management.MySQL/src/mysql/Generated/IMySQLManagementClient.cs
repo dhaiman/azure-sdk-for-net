@@ -102,6 +102,11 @@ namespace Microsoft.Azure.Management.MySQL
         IConfigurationsOperations Configurations { get; }
 
         /// <summary>
+        /// Gets the IServerParametersOperations.
+        /// </summary>
+        IServerParametersOperations ServerParameters { get; }
+
+        /// <summary>
         /// Gets the ILogFilesOperations.
         /// </summary>
         ILogFilesOperations LogFiles { get; }
@@ -110,6 +115,16 @@ namespace Microsoft.Azure.Management.MySQL
         /// Gets the IServerAdministratorsOperations.
         /// </summary>
         IServerAdministratorsOperations ServerAdministrators { get; }
+
+        /// <summary>
+        /// Gets the IRecoverableServersOperations.
+        /// </summary>
+        IRecoverableServersOperations RecoverableServers { get; }
+
+        /// <summary>
+        /// Gets the IServerBasedPerformanceTierOperations.
+        /// </summary>
+        IServerBasedPerformanceTierOperations ServerBasedPerformanceTier { get; }
 
         /// <summary>
         /// Gets the ILocationBasedPerformanceTierOperations.
